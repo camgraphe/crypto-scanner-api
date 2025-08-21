@@ -35,3 +35,87 @@
     }
   }
 }
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Crypto Snapshot API",
+    "version": "1.0.0",
+    "description": "Simple API exposing health and market snapshots for GPT Actions."
+  },
+  "servers": [
+    { "url": "https://crypto-scanner-api-6ekl.onrender.com" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/snapshot-min": {
+      "get": {
+        "summary": "Snapshot minifié (compact)",
+        "operationId": "snapshot_min_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SnapshotMin" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/snapshot": {
+      "get": {
+        "summary": "Snapshot complet",
+        "operationId": "snapshot_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Snapshot" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["service", "status"],
+        "properties": {
+          "service": { "type": "string", "example": "crypto-scanner-api" },
+          "status": { "type": "string", "example": "ok" }
+        },
+        "additionalProperties": false
+      },
+      "SnapshotMin": {
+        "type": "object",
+        "description": "Dynamic structure of snapshot_min.json (keys may vary).",
+        "additionalProperties": true
+      },
+      "Snapshot": {
+        "type": "object",
+        "description": "Dynamic structure of snapshot.json (very large, keys may vary).",
+        "additionalProperties": true
+      }
+    }
+  }
+}
