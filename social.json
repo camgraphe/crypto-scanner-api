@@ -1,0 +1,5 @@
+{
+  "SOL": { "tw_sent": 0.45, "tw_vol_z": 1.6, "rd_sent": 0.2, "rd_vol_z": 0.8, "news_spike": true, "google_trend": 78 },
+  "LINK": { "tw_sent": 0.10, "tw_vol_z": 0.4, "rd_sent": 0.05, "rd_vol_z": 0.2, "google_trend": 52 },
+  "BIBI": { "tw_sent": -0.35, "tw_vol_z": 1.3, "news_spike": false }
+}
