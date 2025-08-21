@@ -1,86 +1,161 @@
+import os
+import json
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from starlette.responses import JSONResponse
+
+# Detect public base URL (Render sets RENDER_EXTERNAL_URL). Fallback to env PUBLIC_BASE_URL.
+PUBLIC_BASE_URL = (
+    os.getenv("PUBLIC_BASE_URL", "").strip() or os.getenv("RENDER_EXTERNAL_URL", "").strip()
+)
+
+app = FastAPI(
+    title="Crypto Snapshot API",
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+)
+
+# CORS: open to simplify Actions integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+SNAP_MIN_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "snapshot_min.json")
+SNAP_FULL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "snapshot.json")
+
+@app.get("/health")
+def health():
+    return {"service": "crypto-scanner-api", "status": "ok"}
+
+
+def _read_json_safely(path: str):
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"status": "empty"}
+    except json.JSONDecodeError:
+        # Return 503 if a writer is in the middle of writing the file
+        raise HTTPException(status_code=503, detail="Snapshot temporarily unavailable")
+
+
+@app.get("/snapshot-min")
+def snapshot_min():
+    data = _read_json_safely(SNAP_MIN_PATH)
+    return JSONResponse(content=data)
+
+
+@app.get("/snapshot")
+def snapshot_full():
+    data = _read_json_safely(SNAP_FULL_PATH)
+    return JSONResponse(content=data)
+
+
+# Custom OpenAPI to ensure a proper `servers` entry so GPT sees a valid server URL
+_cached_openapi = None
+
+@app.get("/openapi.json")
+def custom_openapi():
+    global _cached_openapi
+    if _cached_openapi is None:
+        _cached_openapi = get_openapi(
+            title=app.title,
+            version=app.version,
+            routes=app.routes,
+            description="Simple API exposing health and market snapshots for GPT Actions.",
+        )
+        if PUBLIC_BASE_URL:
+            _cached_openapi["servers"] = [{"url": PUBLIC_BASE_URL.rstrip("/") }]
+    return JSONResponse(content=_cached_openapi)
 {
-    "openapi": "3.0.3",
-    "info": {
-      "title": "Crypto Snapshot API",
-      "version": "1.0.0",
-      "description": "Simple API exposing health and market snapshots for GPT Actions."
-    },
-    "servers": [
-      { "url": "https://crypto-scanner-api-6ekl.onrender.com" }
-    ],
-    "paths": {
-      "/health": {
-        "get": {
-          "summary": "Health",
-          "operationId": "health_health_get",
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/HealthResponse" }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/snapshot-min": {
-        "get": {
-          "summary": "Snapshot minifié (compact)",
-          "operationId": "snapshot_min_get",
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/SnapshotMin" }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/snapshot": {
-        "get": {
-          "summary": "Snapshot complet",
-          "operationId": "snapshot_get",
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/Snapshot" }
-                }
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Crypto Snapshot API",
+    "version": "1.0.0",
+    "description": "Simple API exposing health and market snapshots for GPT Actions."
+  },
+  "servers": [
+    { "url": "https://crypto-scanner-api-6ekl.onrender.com" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
               }
             }
           }
         }
       }
     },
-    "components": {
-      "schemas": {
-        "HealthResponse": {
-          "type": "object",
-          "required": ["service", "status"],
-          "properties": {
-            "service": { "type": "string", "example": "crypto-scanner-api" },
-            "status": { "type": "string", "example": "ok" }
-          },
-          "additionalProperties": false
-        },
-        "SnapshotMin": {
-          "type": "object",
-          "description": "Dynamic structure of snapshot_min.json (keys may vary).",
-          "properties": {},
-          "additionalProperties": true
-        },
-        "Snapshot": {
-          "type": "object",
-          "description": "Dynamic structure of snapshot.json (very large, keys may vary).",
-          "properties": {},
-          "additionalProperties": true
+    "/snapshot-min": {
+      "get": {
+        "summary": "Snapshot minifié (compact)",
+        "operationId": "snapshot_min_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SnapshotMin" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/snapshot": {
+      "get": {
+        "summary": "Snapshot complet",
+        "operationId": "snapshot_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Snapshot" }
+              }
+            }
+          }
         }
       }
     }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["service", "status"],
+        "properties": {
+          "service": { "type": "string", "example": "crypto-scanner-api" },
+          "status": { "type": "string", "example": "ok" }
+        },
+        "additionalProperties": false
+      },
+      "SnapshotMin": {
+        "type": "object",
+        "description": "Dynamic structure of snapshot_min.json (keys may vary).",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "Snapshot": {
+        "type": "object",
+        "description": "Dynamic structure of snapshot.json (very large, keys may vary).",
+        "properties": {},
+        "additionalProperties": true
+      }
+    }
   }
+}
