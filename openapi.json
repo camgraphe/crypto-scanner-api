@@ -1,41 +1,4 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Crypto Snapshot API",
-    "description": "Crypto Snapshot API",
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "https://crypto-scanner-api-6ekl.onrender.com"
-    }
-  ],
-  "paths": {
-    "/health": {
-      "get": {
-        "summary": "Health Check",
-        "operationId": "health_check",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "service": { "type": "string" },
-                    "status": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-{
   "openapi": "3.0.3",
   "info": {
     "title": "Crypto Snapshot API",
