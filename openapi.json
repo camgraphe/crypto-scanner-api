@@ -1,0 +1,81 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Crypto Snapshot API",
+      "version": "1.0.0",
+      "description": "Endpoints: health, snapshot-min (compact), snapshot (full)."
+    },
+    "servers": [
+      { "url": "https://fda-allowance-render-identity.trycloudflare.com" }
+    ],
+    "paths": {
+      "/health": {
+        "get": {
+          "summary": "Health",
+          "operationId": "health",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/HealthResponse" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/snapshot-min": {
+        "get": {
+          "summary": "Snapshot minifié",
+          "operationId": "getSnapshotMin",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/SnapshotMin" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/snapshot": {
+        "get": {
+          "summary": "Snapshot complet",
+          "operationId": "getSnapshotFull",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/Snapshot" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "HealthResponse": {
+          "type": "object",
+          "properties": { "ok": { "type": "boolean" } },
+          "required": ["ok"],
+          "additionalProperties": false
+        },
+        "SnapshotMin": {
+          "type": "object",
+          "description": "snapshot_min.json structure (dynamic keys allowed)",
+          "additionalProperties": true
+        },
+        "Snapshot": {
+          "type": "object",
+          "description": "snapshot.json structure (large, dynamic)",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
